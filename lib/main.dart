@@ -90,8 +90,11 @@ class _MyAppState extends State<MyApp> {
     Tflite.close();
     String res;
     res = await Tflite.loadModel(
-      model: "assets/mobilenet_v1_1.0_224.tflite",
-      labels: "assets/mobilenet_v1_1.0_224.txt",
+      //model: "assets/mobilenet_v1_1.0_224.tflite",
+      //labels: "assets/mobilenet_v1_1.0_224.txt",
+      model: "assets/TheRealmodel.tflite",
+      labels: "assets/label_tiko.txt",
+
     );
     print(res);
   }
@@ -107,11 +110,13 @@ class _MyAppState extends State<MyApp> {
     // Run tensorflowlite image classification model on the image
     final List results = await Tflite.runModelOnImage(
       path: image.path,
-      numResults: 6,
-      threshold: 0.05,
+      //numResults: 6,
+      //threshold: 0.05,
+      //imageMean: 0,
       imageMean: 127.5,
-      imageStd: 127.5,
+      //imageStd: 127.5,
     );
+    print("RESULTATS : $results");
     setState(() {
       _results = results;
       _image = image;
