@@ -34,6 +34,12 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.8.1
+
+flutter_icons :
+  image_path: 'assets/launcher/launcher_dark.png'
+  android: true
+  ios: true
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -52,4 +58,6 @@ flutter:
     - assets/TheRealmodel.tflite
     - assets/mobilenet_v1_1.0_224.txt
     - assets/mobilenet_v1_1.0_224.tflite
+    - assets/images/
+    - assets/launcher/
 

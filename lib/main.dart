@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_classification/utils/speciesFiller.dart';
+import 'package:image_classification/widgets/speciesDetail.dart';
 import 'package:tflite/tflite.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -10,7 +12,17 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData.dark(),
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        dividerTheme: DividerThemeData(
+          space: 50,
+          thickness: 1,
+          color: Colors.white,
+          indent: 0,
+          endIndent: 0
+        ),
+      ),
       home: MyApp(),
     );
   }
@@ -24,6 +36,8 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   File _image;
   List _results;
+
+  String _speciesName = 'unknown';
 
   @override
   void initState() {
@@ -45,7 +59,17 @@ class _MyAppState extends State<MyApp> {
       body: Column(
         children: [
           if (_image != null)
-            Container(margin: EdgeInsets.all(10), child: Image.file(_image))
+            Container(
+                margin: EdgeInsets.all(10),
+                child: FlatButton(
+                  onPressed: () {
+                    Navigator.push(context, new MaterialPageRoute(builder: (BuildContext buildContext) {
+                      return new SpeciesDetail(SpeciesFiller.getSpeciesFromName(_speciesName));
+                    }));
+                  },
+                  child: Image.file(_image),
+                )
+            )
           else
             Container(
               margin: EdgeInsets.all(40),
@@ -94,7 +118,6 @@ class _MyAppState extends State<MyApp> {
       //labels: "assets/mobilenet_v1_1.0_224.txt",
       model: "assets/TheRealmodel.tflite",
       labels: "assets/label_tiko.txt",
-
     );
     print(res);
   }
@@ -110,16 +133,19 @@ class _MyAppState extends State<MyApp> {
     // Run tensorflowlite image classification model on the image
     final List results = await Tflite.runModelOnImage(
       path: image.path,
-      //numResults: 6,
-      //threshold: 0.05,
-      //imageMean: 0,
-      imageMean: 127.5,
+      numResults: 3,
+      //threshold: 0.40,
+      imageMean: 0,
       //imageStd: 127.5,
     );
     print("RESULTATS : $results");
     setState(() {
       _results = results;
       _image = image;
+      _speciesName = _results[0]["label"];
     });
+    print("ESPECE : $_speciesName");
   }
+  
+
 }
