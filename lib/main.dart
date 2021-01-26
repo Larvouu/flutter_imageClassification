@@ -1,12 +1,20 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_classification/utils/speciesFiller.dart';
+import 'package:flutter/services.dart';
+import 'package:image_classification/utils/utilsMethods.dart';
+import 'package:image_classification/widgets/aquadex.dart';
 import 'package:image_classification/widgets/speciesDetail.dart';
 import 'package:tflite/tflite.dart';
 import 'package:image_picker/image_picker.dart';
 
-void main() => runApp(new App());
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp
+  ]);
+  runApp(new App());
+}
 
 class App extends StatelessWidget {
   @override
@@ -53,55 +61,64 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFF0C1641),
       appBar: AppBar(
         title: Text('Image classification'),
       ),
-      body: Column(
-        children: [
-          if (_image != null)
-            Container(
-                margin: EdgeInsets.all(10),
-                child: FlatButton(
-                  onPressed: () {
-                    Navigator.push(context, new MaterialPageRoute(builder: (BuildContext buildContext) {
-                      return new SpeciesDetail(SpeciesFiller.getSpeciesFromName(_speciesName));
-                    }));
-                  },
-                  child: Image.file(_image),
-                )
-            )
-          else
-            Container(
-              margin: EdgeInsets.all(40),
-              child: Opacity(
-                opacity: 0.6,
-                child: Center(
-                  child: Text('No Image Selected!'),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            if (_image != null)
+              Container(
+                  margin: EdgeInsets.all(10),
+                  child: FlatButton(
+                    onPressed: () {
+                      Navigator.push(context, new MaterialPageRoute(builder: (BuildContext buildContext) {
+                        return new SpeciesDetail(UtilsMethods.getSpeciesFromName(_speciesName));
+                      }));
+                    },
+                    onLongPress: () {
+                      Navigator.push(context, new MaterialPageRoute(builder: (BuildContext buildContext) {
+                        return new Aquadex();
+                      }));
+                    },
+                    child: Image.file(_image),
+                  )
+              )
+            else
+              Container(
+                margin: EdgeInsets.all(40),
+                child: Opacity(
+                  opacity: 0.6,
+                  child: Center(
+                    child: Text('No Image Selected!'),
+                  ),
                 ),
               ),
+            SingleChildScrollView(
+              child: Column(
+                children: _results != null
+                    ? _results.map((result) {
+                  return Card(
+                    child: Container(
+                      margin: EdgeInsets.all(10),
+                      child: Text(
+                        "${result["label"]} -  ${result["confidence"].toStringAsFixed(2)}",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  );
+                }).toList()
+                    : [],
+              ),
             ),
-          SingleChildScrollView(
-            child: Column(
-              children: _results != null
-                  ? _results.map((result) {
-                      return Card(
-                        child: Container(
-                          margin: EdgeInsets.all(10),
-                          child: Text(
-                            "${result["label"]} -  ${result["confidence"].toStringAsFixed(2)}",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20.0,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      );
-                    }).toList()
-                  : [],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
+
       floatingActionButton: FloatingActionButton(
         onPressed: pickAnImage,
         tooltip: 'Select Image',
@@ -133,7 +150,7 @@ class _MyAppState extends State<MyApp> {
     // Run tensorflowlite image classification model on the image
     final List results = await Tflite.runModelOnImage(
       path: image.path,
-      numResults: 3,
+      numResults: 1,
       //threshold: 0.40,
       imageMean: 0,
       //imageStd: 127.5,
